@@ -1,6 +1,6 @@
 from unittest.mock import Mock, MagicMock, patch
 import unittest
-from utils.func import sum
+import utils
 
 
 def fetch_some_url(api):
@@ -49,6 +49,9 @@ def externalApiSideEffect(num):
 print(fetch_some_url("url"))
 
 
+mock_object = MagicMock(return_value="Mocked Result")
+
+
 class MOONTEST(unittest.TestCase):
     def test_One(self):
         """
@@ -90,12 +93,34 @@ class MOONTEST(unittest.TestCase):
         self.assertEqual(externalAPI(7), {"msg": "No 7 passed"})
         self.assertEqual(externalAPI(12), {"msg": "List capacity exceeded"})
 
-    @patch("utils.func.sum")
-    def test_seven(self, mock_obj):
+    @patch("utils.func.sum", mock_object)
+    def test_seven(self):
         """Test seven"""
-        mock_obj.return_value = "Mocked Result"
-        result = sum(2, 3)
+        result = utils.func.sum(3, 2)
         self.assertEqual(result, "Mocked Result")
+
+    @patch("utils.func.sum")
+    def test_eight(self, mock_object):
+        """Test Eight"""
+        mock_object.return_value = 10
+        result = utils.func.sum(4, 1)
+        mock_object.assert_called()
+        mock_object.assert_called_with(4, 1)
+        self.assertEqual(result, 10)
+
+    def test_Nine(self):
+        with patch("utils.func.sum") as mock_func:
+            mock_func.return_value = 200
+            result = utils.func.sum("My name is ", "Martins")
+            assert mock_func.call_count == 1
+            mock_func.assert_called()
+            mock_func.assert_called_once()
+            mock_func.assert_called_once_with("My name is ", "Martins")
+            mock_func.assert_called_with("My name is ", "Martins")
+            self.assertEqual(result, 200)
+            mock_func.reset_mock()
+            mock_func.assert_not_called()
+        mock_func.reset_mock()
 
 
 if __name__ == "__main__":
